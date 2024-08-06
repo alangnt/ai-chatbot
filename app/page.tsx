@@ -1,9 +1,9 @@
-import Chat from "@/components/Chat";
+import ChatBox from "@/components/component/ChatBox";
 
 export default function Home() {
   return (
     <>
-      <Chat />
+      <ChatBox />
     </>
   );
 }
