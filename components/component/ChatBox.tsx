@@ -38,12 +38,7 @@ export default function ChatBox() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          messages: updatedMessages.map(msg => ({
-            role: msg.role === 'human' ? 'user' : msg.role,
-            content: msg.content
-          }))
-        }),
+        body: JSON.stringify({ messages: updatedMessages }),
       });
 
       if (!response.ok) {
@@ -51,10 +46,10 @@ export default function ChatBox() {
       }
 
       const data = await response.json();
-      if (data.choices && data.choices[0] && data.choices[0].message) {
+      if (data.reply) {
         setMessages([...updatedMessages, { 
           role: 'assistant', 
-          content: data.choices[0].message.content 
+          content: data.reply 
         }]);
       } else {
         console.error('Unexpected response structure:', data);
