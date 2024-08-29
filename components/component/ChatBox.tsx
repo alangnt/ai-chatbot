@@ -28,8 +28,7 @@ export default function ChatBox() {
     if (!input.trim()) return;
 
     const newMessage: Message = { role: 'human', content: input };
-    const updatedMessages = [...messages, newMessage];
-    setMessages(updatedMessages);
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
     setInput('');
 
     try {
@@ -38,7 +37,7 @@ export default function ChatBox() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({ messages: [...messages, newMessage] }),
       });
 
       if (!response.ok) {
@@ -46,14 +45,10 @@ export default function ChatBox() {
       }
 
       const data = await response.json();
-      if (data.reply) {
-        setMessages([...updatedMessages, { 
-          role: 'assistant', 
-          content: data.reply 
-        }]);
-      } else {
-        console.error('Unexpected response structure:', data);
-      }
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: 'assistant', content: data.reply },
+      ]);
     } catch (error) {
       console.error('Error:', error);
     }
