@@ -7,8 +7,10 @@ type Message = { role: 'human' | 'assistant'; content: string };
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger } from '@/components/ui/navigation-menu';
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem } from '@/components/ui/navigation-menu';
 import { buttonVariants } from "@/components/ui/button"
+import { Bot, User } from 'lucide-react';
+
 
 export default function ChatBox() {
   const [input, setInput] = useState('');
@@ -36,7 +38,12 @@ export default function ChatBox() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({
+          messages: updatedMessages.map(msg => ({
+            role: msg.role === 'human' ? 'user' : msg.role,
+            content: msg.content
+          }))
+        }),
       });
 
       if (!response.ok) {
@@ -44,7 +51,14 @@ export default function ChatBox() {
       }
 
       const data = await response.json();
-      setMessages([...updatedMessages, { role: 'assistant', content: data.reply }]);
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        setMessages([...updatedMessages, { 
+          role: 'assistant', 
+          content: data.choices[0].message.content 
+        }]);
+      } else {
+        console.error('Unexpected response structure:', data);
+      }
     } catch (error) {
       console.error('Error:', error);
     }
@@ -53,11 +67,6 @@ export default function ChatBox() {
   return (
     <div className="flex flex-col min-h-[100dvh]">
       <header className="px-4 lg:px-6 h-14 flex items-center">
-        <Link href="#" className="flex items-center justify-center" prefetch={false}>
-          <WebcamIcon className="h-6 w-6" />
-          <span className="sr-only">AI Customer Service Chat</span>
-        </Link>
-
         <NavigationMenu className='hidden'>
           <NavigationMenuList>
               <NavigationMenuItem>
@@ -101,7 +110,7 @@ export default function ChatBox() {
                     }`}>
                       {msg.role === 'assistant' && (
                         <div className="rounded-full w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center">
-                          <BotIcon className="h-6 w-6" />
+                          <Bot className="h-6 w-6" />
                         </div>
                       )}
                       <div className={`rounded-lg p-4 max-w-[70%] ${
@@ -113,7 +122,7 @@ export default function ChatBox() {
                       </div>
                       {msg.role === 'human' && (
                         <div className="rounded-full w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center">
-                          <UserIcon className="h-6 w-6" />
+                          <User className="h-6 w-6" />
                         </div>
                       )}
                     </div>
@@ -154,73 +163,5 @@ export default function ChatBox() {
         </nav>
       </footer>
     </div>
-  )
-}
-
-function BotIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 8V4H8" />
-      <rect width="16" height="12" x="4" y="8" rx="2" />
-      <path d="M2 14h2" />
-      <path d="M20 14h2" />
-      <path d="M15 13v2" />
-      <path d="M9 13v2" />
-    </svg>
-  )
-}
-
-
-function UserIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  )
-}
-
-
-function WebcamIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="10" r="8" />
-      <circle cx="12" cy="10" r="3" />
-      <path d="M7 22h10" />
-      <path d="M12 22v-4" />
-    </svg>
   )
 }
